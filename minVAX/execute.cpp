@@ -16,11 +16,23 @@
 //
 // RTL (Register Transfer Language)
 // RA = RA + data(AM)
+// (RA = RA + addr)
 //
 // Code 1
 //
 
-void add_to_ra() {
+void add_to_ra( StorageObject ra ) {
+	alu.OP1().pullFrom( ra );
+	alu.OP2().pullFrom( addr );
+	alu.perform( BusALU::op_add );
+	
+	// Get the result from ALU into AUX.
+	aux.latchFrom( alu.OUT() );
+	Clock::tick();
+	
+	// Get the value from AUX into ADDR.
+	dbus.IN().pullFrom( aux );
+	addr.latchFrom( dbus.OUT() );
 }
 
 //
@@ -28,11 +40,23 @@ void add_to_ra() {
 //
 // RTL (Register Transfer Language)
 // RA = RA & data(AM)
+// (RA = RA & addr)
 //
 // Code 2
 //
 
-void and_to_ra() {
+void and_to_ra( StorageObject ra ) {
+	alu.OP1().pullFrom( ra );
+	alu.OP2().pullFrom( addr );
+	alu.perform( BusALU::op_and );
+	
+	// Get the result from ALU into AUX.
+	aux.latchFrom( alu.OUT() );
+	Clock::tick();
+	
+	// Get the value from AUX into ADDR.
+	dbus.IN().pullFrom( aux );
+	addr.latchFrom( dbus.OUT() );
 }
 
 //
@@ -41,11 +65,23 @@ void and_to_ra() {
 //
 // RTL (Register Transfer Language)
 // RA = RA >>_a data(AM)
+// (RA = RA >>_a addr)
 //
 // Code 3
 //
 
-void shift_right_arithmetic() {
+void shift_right_arithmetic( StorageObject ra ) {
+	alu.OP1().pullFrom( ra );
+	alu.OP2().pullFrom( addr );
+	alu.perform( BusALU::op_rashift );
+	
+	// Get the result from ALU into AUX.
+	aux.latchFrom( alu.OUT() );
+	Clock::tick();
+	
+	// Get the value from AUX into ADDR.
+	dbus.IN().pullFrom( aux );
+	addr.latchFrom( dbus.OUT() );
 }
 
 //
@@ -54,11 +90,12 @@ void shift_right_arithmetic() {
 //
 // RTL (Register Transfer Language)
 // RA = RA << data(AM)
+// (RA = RA << addr)
 //
 // Code 4
 //
 
-void shift_left_logical() {
+void shift_left_logical( StorageObject ra ) {
 }
 
 //
@@ -71,7 +108,7 @@ void shift_left_logical() {
 // Code 5
 //
 
-void load_to_ra() {
+void load_to_ra( StorageObject ra ) {
 }
 
 //
@@ -84,7 +121,7 @@ void load_to_ra() {
 // Code 6
 //
 
-void store_to_mem() {
+void store_to_mem( StorageObject ra ) {
 }
 
 //
@@ -109,7 +146,7 @@ void jump() {
 // Code 8
 //
 
-void branch_if_ra_equals_zero() {
+void branch_if_ra_equals_zero( StorageObject ra ) {
 }
 
 //
@@ -122,7 +159,7 @@ void branch_if_ra_equals_zero() {
 // Code 9
 //
 
-void branch_if_ra_less_than_zero() {
+void branch_if_ra_less_than_zero( StorageObject ra ) {
 }
 
 //
@@ -134,7 +171,7 @@ void branch_if_ra_less_than_zero() {
 // Code 11
 //
 
-void clear_ra() {
+void clear_ra( StorageObject ra ) {
 }
 
 //
@@ -146,7 +183,7 @@ void clear_ra() {
 // Code 12
 //
 
-void complement_ra() {
+void complement_ra( StorageObject ra ) {
 }
 
 //
@@ -158,7 +195,7 @@ void complement_ra() {
 // Code 13
 //
 
-void increment_ra() {
+void increment_ra( StorageObject ra ) {
 }
 
 //
@@ -170,7 +207,7 @@ void increment_ra() {
 // Code 14
 //
 
-void dump_ra() {
+void dump_ra( StorageObject ra ) {
 }
 
 //
@@ -217,13 +254,18 @@ void displacement_am( StorageObject reg ) {
 	fetch_into( pc, abus, addr );
 	pc.incr();
 	
-	// Compute EA = reg + imm; addr = reg + addr
+	// Compute EA = reg + imm; addr = reg + addr.
 	alu.OP1().pullFrom( reg );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_add );
 	
-	// Get the EA into addr.
-	addr.latchFrom( alu.OUT() );
+	// Get the output from ALU into AUX.
+	aux.latchFrom( alu.OUT() );
+	Clock::tick();
+	
+	// Get the value from AUX into ADDR.
+	dbus.IN().pullFrom( aux );
+	addr.latchFrom( dbus.OUT() );
 }
 
 //
@@ -275,8 +317,13 @@ void pc_relative_am() {
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_add );
 	
-	// Get the EA into addr.
-	addr.latchFrom( alu.OUT() );
+	// Get the output from ALU into AUX.
+	aux.latchFrom( alu.OUT() );
+	Clock::tick();
+	
+	// Get the value from AUX into ADDR.
+	dbus.IN().pullFrom( aux );
+	addr.latchFrom( dbus.OUT() );
 }
 
 void decode_am( long am, bool &data_in_addr ) {
@@ -304,6 +351,11 @@ void execute() {
 	long opc;
 	long am;
 	long ra;
+	
+	// Represents the RA register used for the instruction based on the ra bit.
+	StorageObject ra_reg;
+	
+	// Represents the operation performed by the instruction's opcode.
 	const char* mnemonic;
 	
 	// Used to keep track of data vs. memory addresses stored in addr.
@@ -324,30 +376,49 @@ void execute() {
 	// Get the content of addr, if address mode matters for the instruction.
 	if( opc > -1 && opc < 11 )
 		decode_am( am, &data_in_addr );
+		
+	// Get the register represented by ra as RA.
+	ra_reg = (( ra == 0 ) ? r0 : r1 );
 	
 	// Opcode represents instructions supported by the minVAX CPU.
 	switch( opc ) {
 		// Instructions that use the address mode to get the data.
-		case 0:										mnemonic = "NOP";	break;
-		case 1: 	add_to_ra();					mnemonic = "ADD";	break;
-		case 2: 	and_to_ra();					mnemonic = "AND";	break;
-		case 3: 	shift_right_arithmetic();		mnemonic = "SRA";	break;
-		case 4: 	shift_left_logical();			mnemonic = "SLL";	break;
+		case 0:												mnemonic = "NOP";
+						break;
+		case 1: 	add_to_ra( ra_reg );					mnemonic = "ADD";
+						break;
+		case 2: 	and_to_ra( ra_reg );					mnemonic = "AND";
+						break;
+		case 3: 	shift_right_arithmetic( ra_reg );		mnemonic = "SRA";
+						break;
+		case 4: 	shift_left_logical( ra_reg );			mnemonic = "SLL";
+						break;
 		
 		// Instructions that use the address mode to get an effective address.
-		case 5: 	load_to_ra();					mnemonic = "LDR";	break;
-		case 6: 	store_to_mem();					mnemonic = "STR";	break;
-		case 7: 	jump();							mnemonic = "JMP";	break;
-		case 8: 	branch_if_ra_equals_zero();		mnemonic = "BEZ";	break;
-		case 9: 	branch_if_ra_less_than_zero();	mnemonic = "BLT";	break;
-		case 10: 									mnemonic = "NOP";	break;
+		case 5: 	load_to_ra( ra_reg );					mnemonic = "LDR";
+						break;
+		case 6: 	store_to_mem( ra_reg );					mnemonic = "STR";
+						break;
+		case 7: 	jump();									mnemonic = "JMP";
+						break;
+		case 8: 	branch_if_ra_equals_zero( ra_reg );		mnemonic = "BEZ";
+						break;
+		case 9: 	branch_if_ra_less_than_zero( ra_reg );	mnemonic = "BLT";
+						break;
+		case 10: 											mnemonic = "NOP";
+						break;
 		
 		// Instructions that ignore the address mode.
-		case 11:	clear_ra();						mnemonic = "CLR";	break;
-		case 12:	complement_ra();				mnemonic = "CMP";	break;
-		case 13:	increment_ra();					mnemonic = "INC";	break;
-		case 14:	dump_ra();						mnemonic = "DMP";	break;
-		case 15:	halt();							mnemonic = "HLT";	break;
+		case 11:	clear_ra( ra_reg );						mnemonic = "CLR";
+						break;
+		case 12:	complement_ra( ra_reg );				mnemonic = "CMP";
+						break;
+		case 13:	increment_ra( ra_reg );					mnemonic = "INC";
+						break;
+		case 14:	dump_ra( ra_reg );						mnemonic = "DMP";
+						break;
+		case 15:	halt();									mnemonic = "HLT";	
+						break;
 
 		default:
 			cout << endl << "MACHINE HALTED due to unknown op code" << opc << endl;
