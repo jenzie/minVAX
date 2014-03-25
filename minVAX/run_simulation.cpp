@@ -18,8 +18,13 @@ void run_simulation( char *objfile ) {
 	m.load( objfile );
 
 	// step 2:  set the entry point
-
-	pc.latchFrom( m.READ() );
+	// get the address of entry point into pc
+	
+	aux.latchFrom( m.READ() );
+	Clock::tick();
+	
+	abus.IN().pullFrom( aux );
+	pc.latchFrom (abus.OUT() );
 	Clock::tick();
 
 	// step 3:  continue fetching, decoding, and executing instructions
@@ -27,11 +32,13 @@ void run_simulation( char *objfile ) {
 
 	while( !done ) {
 
-		// instruction fetch
+		// instruction fetch into ir
+		// mdr is not needed anymore, since we can directly write into ir
 
-		//fetch_into( pc, abus, mdr );
+		fetch_into( pc, abus, ir );
 
 		// check for PC overflow
+		
 		if (pc.value() == 0xfff) {
 			cout << endl << "MACHINE HALTED due to PC overflow" << endl << endl;
 			done = true;
@@ -39,21 +46,16 @@ void run_simulation( char *objfile ) {
 		}
 
 		// print the instruction's address (pc) and data (memory data register) values in hexadecimal
-		//printf("%03x:  %04x = ", pc.value(), mdr.value());
+		
+		printf("%02x:  %04x = ", pc.value(), ir.value());
 
 		// bump PC for next instruction
-
+		
 		pc.incr();
 		Clock::tick();
 
-		// move instruction into IR
-
-		//dbus.IN().pullFrom( mdr );
-		ir.latchFrom( dbus.OUT() );
-		Clock::tick();
-
 		// decode and execute
-
+		
 		execute();
 		printf("\n");
 	}
