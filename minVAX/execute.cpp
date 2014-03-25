@@ -16,7 +16,7 @@
 //
 // RTL (Register Transfer Language)
 // RA = RA + data(AM)
-// (RA = RA + addr)
+//     (RA = RA + addr)
 //
 // Code 1
 //
@@ -40,7 +40,7 @@ void add_to_ra( StorageObject ra ) {
 //
 // RTL (Register Transfer Language)
 // RA = RA & data(AM)
-// (RA = RA & addr)
+//     (RA = RA & addr)
 //
 // Code 2
 //
@@ -65,7 +65,7 @@ void and_to_ra( StorageObject ra ) {
 //
 // RTL (Register Transfer Language)
 // RA = RA >>_a data(AM)
-// (RA = RA >>_a addr)
+//     (RA = RA >>_a addr)
 //
 // Code 3
 //
@@ -90,12 +90,23 @@ void shift_right_arithmetic( StorageObject ra ) {
 //
 // RTL (Register Transfer Language)
 // RA = RA << data(AM)
-// (RA = RA << addr)
+//     (RA = RA << addr)
 //
 // Code 4
 //
 
 void shift_left_logical( StorageObject ra ) {
+	alu.OP1().pullFrom( ra );
+	alu.OP2().pullFrom( addr );
+	alu.perform( BusALU::op_lshift );
+	
+	// Get the result from ALU into AUX.
+	aux.latchFrom( alu.OUT() );
+	Clock::tick();
+	
+	// Get the value from AUX into ADDR.
+	dbus.IN().pullFrom( aux );
+	addr.latchFrom( dbus.OUT() );
 }
 
 //
@@ -103,12 +114,21 @@ void shift_left_logical( StorageObject ra ) {
 //      specified by the address mode.
 //
 // RTL (Register Transfer Language)
-// RA <- Mem[ EA ]
+// RA <- Mem[EA]
+//     (AUX <- Mem[ADDR]
+//     (RA <- AUX)
 //
 // Code 5
 //
 
 void load_to_ra( StorageObject ra ) {
+	// Get the value in memory specified by ADDR into AUX.
+	// AUX <- Mem[ADDR]
+	fetch_into( addr, abus, aux );
+	
+	// RA <- AUX
+	dbus.IN().pullFrom( aux );
+	ra.latchFrom( dbus.OUT() );
 }
 
 //
@@ -116,12 +136,26 @@ void load_to_ra( StorageObject ra ) {
 //      specified by the address mode.
 //
 // RTL (Register Transfer Language)
-// Mem[ EA ] <- RA
+// Mem[EA] <- RA
+//     (MAR <- ADDR, AUX <- RA)
+//     (Mem[MAR] <- AUX)
 //
 // Code 6
 //
 
 void store_to_mem( StorageObject ra ) {
+	// MAR <- ADDR, AUX <- RA
+	abus.IN().pullFrom( addr );
+	m.MAR().latchFrom( abus.OUT() );
+	
+	dbus.IN().pullFrom( ra );
+	aux.latchFrom( dbus.OUT() );
+	Clock::tick();
+	
+	// Mem[MAR] <- AUX
+	m.WRITE().latchFrom( aux );
+	m.write();
+	Clock::tick();
 }
 
 //
@@ -129,11 +163,15 @@ void store_to_mem( StorageObject ra ) {
 //
 // RTL (Register Transfer Language)
 // PC = EA
+//     (PC <- ADDR)
 //
 // Code 7
 //
 
 void jump() {
+	// PC <- ADDR
+	abus.IN().pullFrom( addr );
+	pc.latchFrom( abus.OUT() );
 }
 
 //
@@ -147,6 +185,9 @@ void jump() {
 //
 
 void branch_if_ra_equals_zero( StorageObject ra ) {
+	// if RA == 0 then PC = EA
+	if( ra.value() == 0 )
+		jump();
 }
 
 //
@@ -160,6 +201,9 @@ void branch_if_ra_equals_zero( StorageObject ra ) {
 //
 
 void branch_if_ra_less_than_zero( StorageObject ra ) {
+	// if RA < 0 then PC = EA
+	if( ra.value() < 0 )
+		jump();
 }
 
 //
@@ -172,6 +216,7 @@ void branch_if_ra_less_than_zero( StorageObject ra ) {
 //
 
 void clear_ra( StorageObject ra ) {
+	ra.clear();
 }
 
 //
@@ -184,6 +229,17 @@ void clear_ra( StorageObject ra ) {
 //
 
 void complement_ra( StorageObject ra ) {
+	alu.OP1().pullFrom( ra );
+	alu.OP2().pullFrom( addr );
+	alu.perform( BusALU::op_not );
+	
+	// Get the result from ALU into AUX.
+	aux.latchFrom( alu.OUT() );
+	Clock::tick();
+	
+	// Get the value from AUX into ADDR.
+	dbus.IN().pullFrom( aux );
+	addr.latchFrom( dbus.OUT() );
 }
 
 //
@@ -191,11 +247,14 @@ void complement_ra( StorageObject ra ) {
 //
 // RTL (Register Transfer Language)
 // RA = RA + 1
+//     (RA <- RA + 1)
 //
 // Code 13
 //
 
 void increment_ra( StorageObject ra ) {
+	// RA <- RA + 1
+	ra.incr();
 }
 
 //
@@ -208,6 +267,7 @@ void increment_ra( StorageObject ra ) {
 //
 
 void dump_ra( StorageObject ra ) {
+	
 }
 
 //
