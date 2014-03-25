@@ -145,21 +145,21 @@ void pc_relative_am() {
 	addr.latchFrom( alu.OUT() );
 }
 
-void decode_am( long am ) {
+void decode_am( long am, bool &data_in_addr ) {
 	switch( am ) {
-			case 0:	register_am( r0 );			data_in_addr = true;	break;
-			case 1:	register_am( r1 );			data_in_addr = true;	break;
-			case 2:	displacement_am( r0 );		data_in_addr = false;	break;
-			case 3:	displacement_am( r1 );		data_in_addr = false;	break;
-			case 4:	immediate_am();				data_in_addr = true;	break;
-			case 5:	absolute_am();				data_in_addr = false;	break;
-			case 6:	pc_relative_am();			data_in_addr = false;	break;
-			default:
-				cout << endl << 
-					"MACHINE HALTED due to unknown address mode" << 
-					am << endl;
-				done = true;
-		}
+		case 0:	register_am( r0 );			data_in_addr = true;	break;
+		case 1:	register_am( r1 );			data_in_addr = true;	break;
+		case 2:	displacement_am( r0 );		data_in_addr = false;	break;
+		case 3:	displacement_am( r1 );		data_in_addr = false;	break;
+		case 4:	immediate_am();				data_in_addr = true;	break;
+		case 5:	absolute_am();				data_in_addr = false;	break;
+		case 6:	pc_relative_am();			data_in_addr = false;	break;
+		default:
+			cout << endl << 
+				"MACHINE HALTED due to unknown address mode" << 
+				am << endl;
+			done = true;
+	}
 }
 
 //
@@ -187,11 +187,28 @@ void execute() {
 	am = ir( DATA_BITS-5, DATA_BITS-7 );
 	ra = ir( DATA_BITS-8 );
 	
+	if( opc > -1 && opc < 11 )
+		decode_am( am, &data_in_addr );
 	
-
 	switch( opc ) {
-
-		// case 8: clear_ac();								 mnemonic = "CLEAR";	break;
+		case 0:										mnemonic = "NOP";	break;
+		case 1: 	add_to_ra();					mnemonic = "ADD";	break;
+		case 2: 	and_to_ra();					mnemonic = "AND";	break;
+		case 3: 	shift_right_arithmetic();		mnemonic = "SRA";	break;
+		case 4: 	shift_left_logical();			mnemonic = "SLL";	break;
+		
+		case 5: 	load_to_ra();					mnemonic = "LDR";	break;
+		case 6: 	store_to_mem();					mnemonic = "STR";	break;
+		case 7: 	jump();							mnemonic = "JMP";	break;
+		case 8: 	branch_if_ra_equals_zero();		mnemonic = "BEZ";	break;
+		case 9: 	branch_if_ra_less_than_zero();	mnemonic = "BLT";	break;
+		case 10: 									mnemonic = "NOP";	break;
+		
+		case 11:	clear_ra();						mnemonic = "CLR";	break;
+		case 12:	complement_ra();				mnemonic = "CMP";	break;
+		case 13:	increment_ra();					mnemonic = "INC";	break;
+		case 14:	dump_ra();						mnemonic = "DMP";	break;
+		case 15:	halt();							mnemonic = "HLT";	break;
 
 		default:
 			cout << endl << "MACHINE HALTED due to unknown op code" << opc << endl;
