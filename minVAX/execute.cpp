@@ -187,16 +187,20 @@ void execute() {
 	am = ir( DATA_BITS-5, DATA_BITS-7 );
 	ra = ir( DATA_BITS-8 );
 	
+	// Get the content of addr, if address mode matters for the instruction.
 	if( opc > -1 && opc < 11 )
 		decode_am( am, &data_in_addr );
 	
+	// Opcode represents instructions supported by the minVAX CPU.
 	switch( opc ) {
+		// Instructions that use the address mode to get the data.
 		case 0:										mnemonic = "NOP";	break;
 		case 1: 	add_to_ra();					mnemonic = "ADD";	break;
 		case 2: 	and_to_ra();					mnemonic = "AND";	break;
 		case 3: 	shift_right_arithmetic();		mnemonic = "SRA";	break;
 		case 4: 	shift_left_logical();			mnemonic = "SLL";	break;
 		
+		// Instructions that use the address mode to get an effective address.
 		case 5: 	load_to_ra();					mnemonic = "LDR";	break;
 		case 6: 	store_to_mem();					mnemonic = "STR";	break;
 		case 7: 	jump();							mnemonic = "JMP";	break;
@@ -204,6 +208,7 @@ void execute() {
 		case 9: 	branch_if_ra_less_than_zero();	mnemonic = "BLT";	break;
 		case 10: 									mnemonic = "NOP";	break;
 		
+		// Instructions that ignore the address mode.
 		case 11:	clear_ra();						mnemonic = "CLR";	break;
 		case 12:	complement_ra();				mnemonic = "CMP";	break;
 		case 13:	increment_ra();					mnemonic = "INC";	break;
