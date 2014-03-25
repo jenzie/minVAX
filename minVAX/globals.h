@@ -12,8 +12,8 @@
 
 #include "includes.h"
 
-extern const unsigned int ADDR_BITS; // 12-bit address => 4096 units of memory
-extern const unsigned int DATA_BITS; // 15-bit unit size
+extern const unsigned int ADDR_BITS; // 8-bit address => 256 units of memory
+extern const unsigned int DATA_BITS; // 8-bit unit size (00-FF)
 
 extern Bus abus; // bus to carry memory addresses
 extern Bus dbus; // bus to carry data and instructions
