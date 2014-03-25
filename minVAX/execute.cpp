@@ -145,6 +145,23 @@ void pc_relative_am() {
 	addr.latchFrom( alu.OUT() );
 }
 
+void decode_am( long am ) {
+	switch( am ) {
+			case 0:	register_am( r0 );			data_in_addr = true;	break;
+			case 1:	register_am( r1 );			data_in_addr = true;	break;
+			case 2:	displacement_am( r0 );		data_in_addr = false;	break;
+			case 3:	displacement_am( r1 );		data_in_addr = false;	break;
+			case 4:	immediate_am();				data_in_addr = true;	break;
+			case 5:	absolute_am();				data_in_addr = false;	break;
+			case 6:	pc_relative_am();			data_in_addr = false;	break;
+			default:
+				cout << endl << 
+					"MACHINE HALTED due to unknown address mode" << 
+					am << endl;
+				done = true;
+		}
+}
+
 //
 // execute() - decode and execute the instruction
 //
@@ -170,19 +187,7 @@ void execute() {
 	am = ir( DATA_BITS-5, DATA_BITS-7 );
 	ra = ir( DATA_BITS-8 );
 	
-	switch( am ) {
-		case 0:	register_am( r0 );			data_in_addr = true;	break;
-		case 1:	register_am( r1 );			data_in_addr = true;	break;
-		case 2:	displacement_am( r0 );		data_in_addr = false;	break;
-		case 3:	displacement_am( r1 );		data_in_addr = false;	break;
-		case 4:	immediate_am();				data_in_addr = true;	break;
-		case 5:	absolute_am();				data_in_addr = false;	break;
-		case 6:	pc_relative_am();			data_in_addr = false;	break;
-		default:
-			cout << endl << 
-				"MACHINE HALTED due to unknown address mode" << am << endl;
-			done = true;
-	}
+	
 
 	switch( opc ) {
 
