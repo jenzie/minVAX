@@ -40,6 +40,76 @@
 // }
 
 //
+// halt() - halt/stop the machine.
+//
+// RTL (Register Transfer Language)
+// null
+//
+// Code 1111
+//
+
+void halt() {
+	printf("%5s %03x\n", "HALT", ir(DATA_BITS - 4, 0));
+	cout << endl << "MACHINE HALTED due to halt instruction" << endl;
+	done = true;
+}
+
+// Functions for decoding effective address, based on address modes (am).
+
+//
+// register_am() - The 2nd operand is in reg.
+// This can only be used for ALU operations.
+//
+// AM encoding: 000 and 001
+// Address Mode: Register n
+// Effective Address: data in Rn
+//
+
+void register_am( StorageObject reg ) {
+	dbus.IN().pullFrom( reg );
+	addr.latchFrom( dbus.OUT() );
+}
+
+//
+// displacement_am() - Computes a memory address as a constant offset to reg.
+//
+// AM encoding: 010 and 011
+// Address Mode: Displacement n
+// Effective Address: EA = reg + imm
+//
+
+void displacement_am( StorageObject reg ) {
+	// PC is pointing to the immediate value; get the imm value into addr.
+	pc.incr();
+	fetch_into( pc, abus, addr );
+	
+	// Compute EA = reg + imm; addr = reg + addr
+	alu.OP1().pullFrom( reg );
+	alu.OP2().pullFrom( addr );
+	alu.perform( BusALU::op_add );
+	
+	// Get the EA into addr.
+	addr.latchFrom( alu.OUT() );
+}
+
+//
+// immediate_am() - The 2nd operand is in the imm byte.
+// This can only be used for ALU operations.
+//
+// AM encoding: 100
+// Address Mode: Immediate
+// Effective Address: data in imm
+//
+
+void immediate_am() {
+	// PC is pointing to the immediate value; get the imm value into addr.
+	pc.incr();
+	fetch_into( pc, abus, addr );
+}
+
+
+
+//
 // execute() - decode and execute the instruction
 //
 
@@ -57,6 +127,17 @@ void execute() {
 	opc = ir( DATA_BITS-1, DATA_BITS-4 );
 	am = ir( DATA_BITS-5, DATA_BITS-7 );
 	ra = ir( DATA_BITS-8 );
+	
+	switch( am ) {
+		case 0:		register_am( r0 );			break;
+		case 1:		register_am( r1 );			break;
+		case 2:		displacement_am( r0 );		break;
+		case 3:		displacement_am( r1 );		break;
+		case 4:		immediate_am();				break;
+		case 5:		absolute_am();				break;
+		case 6:		pc_relative_am();			break;
+		case 7:		illegal
+	}
 
 	switch( opc ) {
 

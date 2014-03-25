@@ -24,7 +24,7 @@ void run_simulation( char *objfile ) {
 	Clock::tick();
 	
 	abus.IN().pullFrom( aux );
-	pc.latchFrom (abus.OUT() );
+	pc.latchFrom ( abus.OUT() );
 	Clock::tick();
 
 	// step 3:  continue fetching, decoding, and executing instructions
