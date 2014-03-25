@@ -154,6 +154,12 @@ void execute() {
 	long am;
 	long ra;
 	const char* mnemonic;
+	
+	// Used to keep track of data vs. memory addresses stored in addr.
+	// Since some instructions need a memory address in addr, an
+	// invalid address mode could be used if addr contains data.
+	// In that case, the machine should halt due to invalid address mode.
+	bool data_in_addr;
 
 	// In each case, note that the last set of operations aren't actually performed 
 	// until we leave the switch statement.
@@ -165,13 +171,13 @@ void execute() {
 	ra = ir( DATA_BITS-8 );
 	
 	switch( am ) {
-		case 0:	register_am( r0 );			break;
-		case 1:	register_am( r1 );			break;
-		case 2:	displacement_am( r0 );		break;
-		case 3:	displacement_am( r1 );		break;
-		case 4:	immediate_am();				break;
-		case 5:	absolute_am();				break;
-		case 6:	pc_relative_am();			break;
+		case 0:	register_am( r0 );			data_in_addr = true;	break;
+		case 1:	register_am( r1 );			data_in_addr = true;	break;
+		case 2:	displacement_am( r0 );		data_in_addr = false;	break;
+		case 3:	displacement_am( r1 );		data_in_addr = false;	break;
+		case 4:	immediate_am();				data_in_addr = true;	break;
+		case 5:	absolute_am();				data_in_addr = false;	break;
+		case 6:	pc_relative_am();			data_in_addr = false;	break;
 		default:
 			cout << endl << 
 				"MACHINE HALTED due to unknown address mode" << am << endl;
