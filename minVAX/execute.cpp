@@ -45,14 +45,18 @@
 
 void execute() {
 	long opc;
+	long am;
+	long ra;
 	const char* mnemonic;
 
 	// In each case, note that the last set of operations aren't actually performed 
 	// until we leave the switch statement.
 	//
-	// instr format:  opcode = bits 14:12, address = bits 11:0
+	// instr format: opcode = bits 7:4, address mode = bits 3:1, ra = bit 0
 
-	opc = ir( DATA_BITS-1, DATA_BITS-3 );
+	opc = ir( DATA_BITS-1, DATA_BITS-4 );
+	am = ir( DATA_BITS-5, DATA_BITS-7 );
+	ra = ir( DATA_BITS-8 );
 
 	switch( opc ) {
 
