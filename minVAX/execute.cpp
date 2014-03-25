@@ -80,8 +80,8 @@ void register_am( StorageObject reg ) {
 
 void displacement_am( StorageObject reg ) {
 	// PC is pointing to the immediate value; get the imm value into addr.
-	pc.incr();
 	fetch_into( pc, abus, addr );
+	pc.incr();
 	
 	// Compute EA = reg + imm; addr = reg + addr
 	alu.OP1().pullFrom( reg );
@@ -103,11 +103,47 @@ void displacement_am( StorageObject reg ) {
 
 void immediate_am() {
 	// PC is pointing to the immediate value; get the imm value into addr.
-	pc.incr();
 	fetch_into( pc, abus, addr );
+	pc.incr();
 }
 
+//
+// absolute_am() - The immediate byte contains the memory address.
+//
+// AM encoding: 101
+// Address Mode: Absolute
+// Effective Address: EA = imm
+//
 
+void absolute_am() {
+	// PC is pointing to the immediate value; get the imm value into addr.
+	fetch_into( pc, abus, addr );
+	pc.incr();
+}
+
+//
+// pc_relative_am() - Computes a memory address as a constant offset to PC 
+// register. Note that the PC should be pointing to the address after the 
+// imm byte.
+//
+// AM encoding: 110
+// Address Mode: PC Relative
+// Effective Address: EA = PC + imm
+//
+
+void pc_relative_am() {
+	// PC is pointing to the immediate value; get the imm value into addr.
+	fetch_into( pc, abus, addr );
+	pc.incr();
+	
+	// Compute EA = PC + imm; addr = pc + addr
+	alu.OP1().pullFrom( pc );
+	alu.OP2().pullFrom( addr );
+	alu.perform( BusALU::op_add );
+	
+	// Get the EA into addr.
+	addr.latchFrom( alu.OUT() );
+}
 
 //
 // execute() - decode and execute the instruction
@@ -129,14 +165,17 @@ void execute() {
 	ra = ir( DATA_BITS-8 );
 	
 	switch( am ) {
-		case 0:		register_am( r0 );			break;
-		case 1:		register_am( r1 );			break;
-		case 2:		displacement_am( r0 );		break;
-		case 3:		displacement_am( r1 );		break;
-		case 4:		immediate_am();				break;
-		case 5:		absolute_am();				break;
-		case 6:		pc_relative_am();			break;
-		case 7:		illegal
+		case 0:	register_am( r0 );			break;
+		case 1:	register_am( r1 );			break;
+		case 2:	displacement_am( r0 );		break;
+		case 3:	displacement_am( r1 );		break;
+		case 4:	immediate_am();				break;
+		case 5:	absolute_am();				break;
+		case 6:	pc_relative_am();			break;
+		default:
+			cout << endl << 
+				"MACHINE HALTED due to unknown address mode" << am << endl;
+			done = true;
 	}
 
 	switch( opc ) {
