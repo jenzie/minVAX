@@ -12,40 +12,174 @@
 #include "includes.h"
 
 //
-// store_to_mem() - store accumulator to memory address given.
+// add_to_ra() - add data to register RA.
 //
 // RTL (Register Transfer Language)
-// MAR <- IR[11-0], MDR <- AC
-// Mem[MAR] <- MDR
+// RA = RA + data(AM)
 //
 // Code 1
 //
 
-// void store_to_mem() {
-
-	// // MAR <- IR[11-0], MDR <- AC
-	// // The parallelization is simulated by the Clock::tick() for this CPU.
-	// abus.IN().pullFrom(ir);
-	// m.MAR().latchFrom(abus.OUT());
-
-	// dbus.IN().pullFrom(ac);
-	// mdr.latchFrom(dbus.OUT());
-
-	// Clock::tick();
-
-	// // Mem[MAR] <- MDR
-	// m.WRITE().pullFrom(mdr);
-	// m.write();
-
-// }
+void add_to_ra() {
+}
 
 //
-// halt() - halt/stop the machine.
+// and_to_ra() - bitwise AND data to register RA.
+//
+// RTL (Register Transfer Language)
+// RA = RA & data(AM)
+//
+// Code 2
+//
+
+void and_to_ra() {
+}
+
+//
+// shift_right_arithmetic() - shift right arithmetic by number of bits 
+//      specified by data.
+//
+// RTL (Register Transfer Language)
+// RA = RA >>_a data(AM)
+//
+// Code 3
+//
+
+void shift_right_arithmetic() {
+}
+
+//
+// shift_left_logical() - shift left logical by number of bits specified 
+//      by data.
+//
+// RTL (Register Transfer Language)
+// RA = RA << data(AM)
+//
+// Code 4
+//
+
+void shift_left_logical() {
+}
+
+//
+// load_to_ra() - load register RA from memory at the effective address 
+//      specified by the address mode.
+//
+// RTL (Register Transfer Language)
+// RA <- Mem[ EA ]
+//
+// Code 5
+//
+
+void load_to_ra() {
+}
+
+//
+// store_to_mem() - store register RA to memory at the effective address 
+//      specified by the address mode.
+//
+// RTL (Register Transfer Language)
+// Mem[ EA ] <- RA
+//
+// Code 6
+//
+
+void store_to_mem() {
+}
+
+//
+// jump() - jump to memory location specified by the effective address.
+//
+// RTL (Register Transfer Language)
+// PC = EA
+//
+// Code 7
+//
+
+void jump() {
+}
+
+//
+// branch_if_ra_equals_zero() - branch to location at the effective address 
+//      if RA is zero.
+//
+// RTL (Register Transfer Language)
+// if RA == 0 then PC = EA
+//
+// Code 8
+//
+
+void branch_if_ra_equals_zero() {
+}
+
+//
+// branch_if_ra_less_than_zero() - branch to location at the effective address 
+//      if RA is less than zero.
+//
+// RTL (Register Transfer Language)
+// if RA < 0 then PC = EA
+//
+// Code 9
+//
+
+void branch_if_ra_less_than_zero() {
+}
+
+//
+// clear_ra() - clear register RA.
+//
+// RTL (Register Transfer Language)
+// RA = 0
+//
+// Code 11
+//
+
+void clear_ra() {
+}
+
+//
+// complement_ra() - complement register RA.
+//
+// RTL (Register Transfer Language)
+// RA = !(RA)
+//
+// Code 12
+//
+
+void complement_ra() {
+}
+
+//
+// increment_ra() - increment register RA.
+//
+// RTL (Register Transfer Language)
+// RA = RA + 1
+//
+// Code 13
+//
+
+void increment_ra() {
+}
+
+//
+// dump_ra() - dump (print) the value of register RA.
 //
 // RTL (Register Transfer Language)
 // null
 //
-// Code 1111
+// Code 14
+//
+
+void dump_ra() {
+}
+
+//
+// halt() - halt the computer.
+//
+// RTL (Register Transfer Language)
+// null
+//
+// Code 15
 //
 
 void halt() {
