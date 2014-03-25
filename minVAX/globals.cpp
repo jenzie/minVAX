@@ -31,8 +31,8 @@ Bus dbus( "DATABUS", DATA_BITS ); // bus to carry data and instructions
 StorageObject aux( "AUX", DATA_BITS );		// auxiliary register
 StorageObject ir( "IR", DATA_BITS );        // instruction register
 StorageObject addr( "ADDR", ADDR_BITS );	// address register
-StorageObject r0( "R0", DATA_BITS );		// R0 register
-StorageObject r1( "R1", DATA_BITS );		// R1 register
+Counter r0( "R0", DATA_BITS );				// R0 register
+Counter r1( "R1", DATA_BITS );				// R1 register
 Counter pc( "PC", ADDR_BITS );              // program counter
 
 // 

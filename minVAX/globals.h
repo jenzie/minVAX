@@ -21,8 +21,8 @@ extern Bus dbus; // bus to carry data and instructions
 extern StorageObject aux;   // auxiliary register
 extern StorageObject ir;    // instruction register
 extern StorageObject addr;  // address register
-extern StorageObject r0;    // R0 register
-extern StorageObject r1;    // R1 register
+extern Counter r0;    		// R0 register
+extern Counter r1;		    // R1 register
 extern Counter pc;          // program counter
 extern Memory m;            // primary memory
 extern BusALU alu;          // arithmetic logic unit

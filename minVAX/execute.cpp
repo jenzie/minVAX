@@ -21,7 +21,7 @@
 // Code 1
 //
 
-void add_to_ra( StorageObject ra ) {
+void add_to_ra( Counter ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_add );
@@ -45,7 +45,7 @@ void add_to_ra( StorageObject ra ) {
 // Code 2
 //
 
-void and_to_ra( StorageObject ra ) {
+void and_to_ra( Counter ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_and );
@@ -70,7 +70,7 @@ void and_to_ra( StorageObject ra ) {
 // Code 3
 //
 
-void shift_right_arithmetic( StorageObject ra ) {
+void shift_right_arithmetic( Counter ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_rashift );
@@ -95,7 +95,7 @@ void shift_right_arithmetic( StorageObject ra ) {
 // Code 4
 //
 
-void shift_left_logical( StorageObject ra ) {
+void shift_left_logical( Counter ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_lshift );
@@ -121,7 +121,7 @@ void shift_left_logical( StorageObject ra ) {
 // Code 5
 //
 
-void load_to_ra( StorageObject ra ) {
+void load_to_ra( Counter ra ) {
 	// Get the value in memory specified by ADDR into AUX.
 	// AUX <- Mem[ADDR]
 	fetch_into( addr, abus, aux );
@@ -143,7 +143,7 @@ void load_to_ra( StorageObject ra ) {
 // Code 6
 //
 
-void store_to_mem( StorageObject ra ) {
+void store_to_mem( Counter ra ) {
 	// MAR <- ADDR, AUX <- RA
 	abus.IN().pullFrom( addr );
 	m.MAR().latchFrom( abus.OUT() );
@@ -184,7 +184,7 @@ void jump() {
 // Code 8
 //
 
-void branch_if_ra_equals_zero( StorageObject ra ) {
+void branch_if_ra_equals_zero( Counter ra ) {
 	// if RA == 0 then PC = EA
 	if( ra.value() == 0 )
 		jump();
@@ -200,7 +200,7 @@ void branch_if_ra_equals_zero( StorageObject ra ) {
 // Code 9
 //
 
-void branch_if_ra_less_than_zero( StorageObject ra ) {
+void branch_if_ra_less_than_zero( Counter ra ) {
 	// if RA < 0 then PC = EA
 	if( ra.value() < 0 )
 		jump();
@@ -215,7 +215,7 @@ void branch_if_ra_less_than_zero( StorageObject ra ) {
 // Code 11
 //
 
-void clear_ra( StorageObject ra ) {
+void clear_ra( Counter ra ) {
 	ra.clear();
 }
 
@@ -228,7 +228,7 @@ void clear_ra( StorageObject ra ) {
 // Code 12
 //
 
-void complement_ra( StorageObject ra ) {
+void complement_ra( Counter ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_not );
@@ -252,7 +252,7 @@ void complement_ra( StorageObject ra ) {
 // Code 13
 //
 
-void increment_ra( StorageObject ra ) {
+void increment_ra( Counter ra ) {
 	// RA <- RA + 1
 	ra.incr();
 }
@@ -266,8 +266,8 @@ void increment_ra( StorageObject ra ) {
 // Code 14
 //
 
-void dump_ra( StorageObject ra ) {
-	
+void dump_ra( Counter ra ) {
+	cout << ra.value();
 }
 
 //
@@ -296,7 +296,7 @@ void halt() {
 // Effective Address: data in Rn
 //
 
-void register_am( StorageObject reg ) {
+void register_am( Counter reg ) {
 	dbus.IN().pullFrom( reg );
 	addr.latchFrom( dbus.OUT() );
 }
@@ -309,7 +309,7 @@ void register_am( StorageObject reg ) {
 // Effective Address: EA = reg + imm
 //
 
-void displacement_am( StorageObject reg ) {
+void displacement_am( Counter reg ) {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	pc.incr();
@@ -413,7 +413,7 @@ void execute() {
 	long ra;
 	
 	// Represents the RA register used for the instruction based on the ra bit.
-	StorageObject ra_reg;
+	Counter ra_reg;
 	
 	// Represents the operation performed by the instruction's opcode.
 	const char* mnemonic;
