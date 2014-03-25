@@ -1,5 +1,6 @@
 // make_connections.C
 //
+// Modified program: 	Jenny Zhen, March 2014
 // Original program:	Jim Heliotis, March 2000
 // Updates:
 //
@@ -11,26 +12,42 @@
 
 #include "includes.h"
 
+//
+// make_connections() - define connections for registers/StorageObjects.
+// Connections for buses are not defined: ABus, DBus, ALU.
+// Connections for special components are not defined: Memory.
+// Special components do not directly read/write from anything.
+//
 void make_connections() {
 
-	m.MAR().connectsTo( abus.OUT() );
-
-	mdr.connectsTo( m.WRITE() );
-	mdr.connectsTo( m.READ() );
-	mdr.connectsTo( dbus.IN() );
-	mdr.connectsTo( dbus.OUT() );
-	mdr.connectsTo( alu.OP2() );
-
-	ir.connectsTo( abus.IN() );
 	ir.connectsTo( dbus.OUT() );
-
-	ac.connectsTo( dbus.IN() );
-	ac.connectsTo( dbus.OUT() );
-	ac.connectsTo( alu.OP1() );
-	ac.connectsTo( alu.OUT() );
-
+	ir.connectsTo( m.READ() );
+	
+	aux.connectsTo( abus.IN() );
+	aux.connectsTo( abus.OUT() );
+	aux.connectsTo( dbus.IN() );
+	aux.connectsTo( dbus.OUT() );
+	aux.connectsTo( m.READ() );
+	aux.connectsTo( m.WRITE() );
+	
 	pc.connectsTo( abus.IN() );
 	pc.connectsTo( abus.OUT() );
-	pc.connectsTo( m.READ() );
+	pc.connectsTo( alu.OP1() );
+	
+	addr.connectsTo( alu.OP2() );
+	addr.connectsTo( m.READ() );
+	addr.connectsTo( dbus.IN() );
+	addr.connectsTo( dbus.OUT() );
+	
+	r0.connectsTo( alu.OP1() );
+	r0.connectsTo( alu.OP2() );
+	r0.connectsTo( dbus.IN() );
+	r0.connectsTo( dbus.OUT() );
 
+	r1.connectsTo( alu.OP1() );
+	r1.connectsTo( alu.OP2() );
+	r1.connectsTo( dbus.IN() );
+	r1.connectsTo( dbus.OUT() );
+	
+	m.MAR().connectsTo( abus.OUT() );
 }

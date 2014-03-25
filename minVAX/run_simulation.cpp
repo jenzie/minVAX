@@ -29,7 +29,7 @@ void run_simulation( char *objfile ) {
 
 		// instruction fetch
 
-		fetch_into( pc, abus, mdr );
+		//fetch_into( pc, abus, mdr );
 
 		// check for PC overflow
 		if (pc.value() == 0xfff) {
@@ -39,7 +39,7 @@ void run_simulation( char *objfile ) {
 		}
 
 		// print the instruction's address (pc) and data (memory data register) values in hexadecimal
-		printf("%03x:  %04x = ", pc.value(), mdr.value());
+		//printf("%03x:  %04x = ", pc.value(), mdr.value());
 
 		// bump PC for next instruction
 
@@ -48,7 +48,7 @@ void run_simulation( char *objfile ) {
 
 		// move instruction into IR
 
-		dbus.IN().pullFrom( mdr );
+		//dbus.IN().pullFrom( mdr );
 		ir.latchFrom( dbus.OUT() );
 		Clock::tick();
 

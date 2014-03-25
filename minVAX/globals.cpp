@@ -14,8 +14,8 @@
 // Constants
 //
 
-const unsigned int ADDR_BITS( 12 ); // 12-bit address => 4096 units of memory
-const unsigned int DATA_BITS( 15 ); // 15-bit unit size
+const unsigned int ADDR_BITS( 8 ); // 8-bit address => 256 units of memory
+const unsigned int DATA_BITS( 8 ); // 8-bit unit size (00-FF)
 
 //
 // Buses
@@ -28,9 +28,11 @@ Bus dbus( "DATABUS", DATA_BITS ); // bus to carry data and instructions
 // Registers
 //
 
+StorageObject aux( "AUX", DATA_BITS );		// auxiliary register
 StorageObject ir( "IR", DATA_BITS );        // instruction register
-Counter mdr( "MDR", DATA_BITS );      	    // memory data register
-Clearable ac( "AC", DATA_BITS );            // accumulator
+StorageObject addr( "ADDR", ADDR_BITS );	// address register
+StorageObject r0( "R0", DATA_BITS );		// R0 register
+StorageObject r1( "R1", DATA_BITS );		// R1 register
 Counter pc( "PC", ADDR_BITS );              // program counter
 
 // 
