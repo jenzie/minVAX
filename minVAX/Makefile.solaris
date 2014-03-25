@@ -1,0 +1,96 @@
+#
+# Created by makemake (Sparc Aug  2 2007) on Sun Mar  7 21:08:06 2010
+#
+
+#
+# Definitions
+#
+
+.SUFFIXES:
+.SUFFIXES:	.a .o .c .C .cpp .s
+.c.o:
+		$(COMPILE.c) $<
+.C.o:
+		$(COMPILE.cc) $<
+.cpp.o:
+		$(COMPILE.cc) $<
+.s.o:
+		$(COMPILE.cc) $<
+.c.a:
+		$(COMPILE.c) -o $% $<
+		$(AR) $(ARFLAGS) $@ $%
+		$(RM) $%
+.C.a:
+		$(COMPILE.cc) -o $% $<
+		$(AR) $(ARFLAGS) $@ $%
+		$(RM) $%
+.cpp.a:
+		$(COMPILE.cc) -o $% $<
+		$(AR) $(ARFLAGS) $@ $%
+		$(RM) $%
+
+CC =		cc
+CXX =		CC
+
+RM = rm -f
+AR = ar
+LINK.c = $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)
+LINK.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
+COMPILE.c = $(CC) $(CFLAGS) $(CPPFLAGS) -c
+COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c
+
+########## Flags from header.mak
+
+BASE = /home/course/vcsg720
+ARCHVER = arch2-5a
+CXX = /opt/SUNWspro/bin/CC
+CCFLAGS = +w -g -xsb -I$(BASE)/include/$(ARCHVER)
+CXXFLAGS = $(CCFLAGS)
+LIBFLAGS = -g -L$(BASE)/lib/$(SYSTEM_TYPE) -l$(ARCHVER)
+CCLIBFLAGS = $(LIBFLAGS)
+
+########## End of flags from header.mak
+
+
+CPP_FILES =	dummest.cpp execute.cpp fetch_into.cpp globals.cpp make_connections.cpp run_simulation.cpp
+C_FILES =	
+S_FILES =	
+H_FILES =	globals.h includes.h prototypes.h
+SOURCEFILES =	$(H_FILES) $(CPP_FILES) $(C_FILES) $(S_FILES)
+.PRECIOUS:	$(SOURCEFILES)
+OBJFILES =	execute.o fetch_into.o globals.o make_connections.o run_simulation.o 
+
+#
+# Main targets
+#
+
+all:	dummest 
+
+dummest:	dummest.o $(OBJFILES)
+	$(CXX) $(CXXFLAGS) -o dummest dummest.o $(OBJFILES) $(CCLIBFLAGS)
+
+#
+# Dependencies
+#
+
+dummest.o:	globals.h includes.h prototypes.h
+execute.o:	globals.h includes.h prototypes.h
+fetch_into.o:	globals.h includes.h prototypes.h
+globals.o:	globals.h includes.h prototypes.h
+make_connections.o:	globals.h includes.h prototypes.h
+run_simulation.o:	globals.h includes.h prototypes.h
+
+#
+# Housekeeping
+#
+
+Archive:	archive.tgz
+
+archive.tgz:	$(SOURCEFILES) Makefile
+	tar cf - $(SOURCEFILES) Makefile | gzip > archive.tgz
+
+clean:
+	-/bin/rm $(OBJFILES) dummest.o ptrepository SunWS_cache .sb ii_files core 2> /dev/null
+
+realclean:        clean
+	-/bin/rm -rf dummest 
