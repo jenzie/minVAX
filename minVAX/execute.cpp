@@ -21,7 +21,7 @@
 // Code 1
 //
 
-void add_to_ra( Counter ra ) {
+void add_to_ra( Counter &ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_add );
@@ -45,7 +45,7 @@ void add_to_ra( Counter ra ) {
 // Code 2
 //
 
-void and_to_ra( Counter ra ) {
+void and_to_ra( Counter &ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_and );
@@ -70,7 +70,7 @@ void and_to_ra( Counter ra ) {
 // Code 3
 //
 
-void shift_right_arithmetic( Counter ra ) {
+void shift_right_arithmetic( Counter &ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_rashift );
@@ -95,7 +95,7 @@ void shift_right_arithmetic( Counter ra ) {
 // Code 4
 //
 
-void shift_left_logical( Counter ra ) {
+void shift_left_logical( Counter &ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_lshift );
@@ -121,7 +121,7 @@ void shift_left_logical( Counter ra ) {
 // Code 5
 //
 
-void load_to_ra( Counter ra ) {
+void load_to_ra( Counter &ra ) {
 	// Get the value in memory specified by ADDR into AUX.
 	// AUX <- Mem[ADDR]
 	fetch_into( addr, abus, aux );
@@ -143,7 +143,7 @@ void load_to_ra( Counter ra ) {
 // Code 6
 //
 
-void store_to_mem( Counter ra ) {
+void store_to_mem( Counter &ra ) {
 	// MAR <- ADDR, AUX <- RA
 	abus.IN().pullFrom( addr );
 	m.MAR().latchFrom( abus.OUT() );
@@ -153,7 +153,7 @@ void store_to_mem( Counter ra ) {
 	Clock::tick();
 	
 	// Mem[MAR] <- AUX
-	m.WRITE().latchFrom( aux );
+	m.WRITE().pullFrom( aux );
 	m.write();
 	Clock::tick();
 }
@@ -184,7 +184,7 @@ void jump() {
 // Code 8
 //
 
-void branch_if_ra_equals_zero( Counter ra ) {
+void branch_if_ra_equals_zero( Counter &ra ) {
 	// if RA == 0 then PC = EA
 	if( ra.value() == 0 )
 		jump();
@@ -200,7 +200,7 @@ void branch_if_ra_equals_zero( Counter ra ) {
 // Code 9
 //
 
-void branch_if_ra_less_than_zero( Counter ra ) {
+void branch_if_ra_less_than_zero( Counter &ra ) {
 	// if RA < 0 then PC = EA
 	if( ra.value() < 0 )
 		jump();
@@ -215,7 +215,7 @@ void branch_if_ra_less_than_zero( Counter ra ) {
 // Code 11
 //
 
-void clear_ra( Counter ra ) {
+void clear_ra( Counter &ra ) {
 	ra.clear();
 }
 
@@ -228,7 +228,7 @@ void clear_ra( Counter ra ) {
 // Code 12
 //
 
-void complement_ra( Counter ra ) {
+void complement_ra( Counter &ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
 	alu.perform( BusALU::op_not );
@@ -252,7 +252,7 @@ void complement_ra( Counter ra ) {
 // Code 13
 //
 
-void increment_ra( Counter ra ) {
+void increment_ra( Counter &ra ) {
 	// RA <- RA + 1
 	ra.incr();
 }
@@ -266,8 +266,8 @@ void increment_ra( Counter ra ) {
 // Code 14
 //
 
-void dump_ra( Counter ra ) {
-	cout << ra.value();
+void dump_ra( Counter &ra, long ra_name ) {
+	printf( "R%lu=%02x", ra_name, ra.value() );
 }
 
 //
@@ -296,7 +296,7 @@ void halt() {
 // Effective Address: data in Rn
 //
 
-void register_am( Counter reg ) {
+void register_am( Counter &reg ) {
 	dbus.IN().pullFrom( reg );
 	addr.latchFrom( dbus.OUT() );
 }
@@ -309,7 +309,7 @@ void register_am( Counter reg ) {
 // Effective Address: EA = reg + imm
 //
 
-void displacement_am( Counter reg ) {
+void displacement_am( Counter &reg ) {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	pc.incr();
@@ -386,15 +386,16 @@ void pc_relative_am() {
 	addr.latchFrom( dbus.OUT() );
 }
 
-void decode_am( long am, bool &data_in_addr ) {
+void decode_am( long am, bool *data_in_addr ) {
+	// Reference is &; dereference is *.
 	switch( am ) {
-		case 0:	register_am( r0 );			data_in_addr = true;	break;
-		case 1:	register_am( r1 );			data_in_addr = true;	break;
-		case 2:	displacement_am( r0 );		data_in_addr = false;	break;
-		case 3:	displacement_am( r1 );		data_in_addr = false;	break;
-		case 4:	immediate_am();				data_in_addr = true;	break;
-		case 5:	absolute_am();				data_in_addr = false;	break;
-		case 6:	pc_relative_am();			data_in_addr = false;	break;
+		case 0:	register_am( r0 );			*data_in_addr = true;	break;
+		case 1:	register_am( r1 );			*data_in_addr = true;	break;
+		case 2:	displacement_am( r0 );		*data_in_addr = false;	break;
+		case 3:	displacement_am( r1 );		*data_in_addr = false;	break;
+		case 4:	immediate_am();				*data_in_addr = true;	break;
+		case 5:	absolute_am();				*data_in_addr = false;	break;
+		case 6:	pc_relative_am();			*data_in_addr = false;	break;
 		default:
 			cout << endl << 
 				"MACHINE HALTED due to unknown address mode" << 
@@ -412,9 +413,6 @@ void execute() {
 	long am;
 	long ra;
 	
-	// Represents the RA register used for the instruction based on the ra bit.
-	Counter ra_reg;
-	
 	// Represents the operation performed by the instruction's opcode.
 	const char* mnemonic;
 	
@@ -422,7 +420,7 @@ void execute() {
 	// Since some instructions need a memory address in addr, an
 	// invalid address mode could be used if addr contains data.
 	// In that case, the machine should halt due to invalid address mode.
-	bool data_in_addr;
+	bool *data_in_addr;
 
 	// In each case, note that the last set of operations aren't actually performed 
 	// until we leave the switch statement.
@@ -435,10 +433,10 @@ void execute() {
 	
 	// Get the content of addr, if address mode matters for the instruction.
 	if( opc > -1 && opc < 11 )
-		decode_am( am, &data_in_addr );
+		decode_am( am, data_in_addr );
 		
 	// Get the register represented by ra as RA.
-	ra_reg = (( ra == 0 ) ? r0 : r1 );
+	Counter &ra_reg = (( ra == 0 ) ? r0 : r1 );
 	
 	// Opcode represents instructions supported by the minVAX CPU.
 	switch( opc ) {
@@ -475,7 +473,7 @@ void execute() {
 						break;
 		case 13:	increment_ra( ra_reg );					mnemonic = "INC";
 						break;
-		case 14:	dump_ra( ra_reg );						mnemonic = "DMP";
+		case 14:	dump_ra( ra_reg, ra );					mnemonic = "DMP";
 						break;
 		case 15:	halt();									mnemonic = "HLT";	
 						break;

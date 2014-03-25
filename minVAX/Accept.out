@@ -1,0 +1,34 @@
+CPU "ARCH" Simulator, 2.5a(Mar 10 2012)
+-----------------------------------------
+
+Memory sets starting address to 0
+00:  b0 = CLR 0 0    R0=00
+01:  00 = NOP 0 0   
+02:  b1 = CLR 1 0    R1=00
+03:  5b = LDR 1 5 a0 R1=fb
+05:  d1 = INC 1 0    R1=fc
+06:  5a = LDR 0 5 90 R0=10
+08:  12 = ADD 0 1    R0=0c
+09:  66 = STR 0 3 84 MEM[80]=0c
+0b:  9d = BLT 1 6 05 BRANCH TAKEN
+12:  01 = NOP 1 0   
+13:  7a = JMP 0 5 3e BRANCH TAKEN
+3e:  8c = BEZ 0 6 01 BRANCH NOT TAKEN
+40:  e0 = DMP 0 0    R0=0c
+41:  c0 = CMP 0 0    R0=f3
+42:  c4 = CMP 0 2    R0=0c
+43:  21 = AND 1 0    R1=0c
+44:  b1 = CLR 1 0    R1=00
+45:  d1 = INC 1 0    R1=01
+46:  b0 = CLR 0 0    R0=00
+47:  45 = SLL 1 2 a1 R1=08
+49:  39 = SRA 1 4 02 R1=02
+4b:  aa = NOP 0 5   
+4c:  f0 = HLT 0 0   
+
+MACHINE HALTED due to halt instruction
+
+
+Simulated time 101 cycles
+
+LAST CPUObject DESTROYED; END OF SIMULATION
