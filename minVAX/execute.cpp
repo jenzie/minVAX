@@ -386,21 +386,21 @@ void pc_relative_am() {
 	addr.latchFrom( dbus.OUT() );
 }
 
-void decode_am( long am, bool *data_in_addr ) {
-	// Reference is &; dereference is *.
+bool decode_am( long am ) {
 	switch( am ) {
-		case 0:	register_am( r0 );			*data_in_addr = true;	break;
-		case 1:	register_am( r1 );			*data_in_addr = true;	break;
-		case 2:	displacement_am( r0 );		*data_in_addr = false;	break;
-		case 3:	displacement_am( r1 );		*data_in_addr = false;	break;
-		case 4:	immediate_am();				*data_in_addr = true;	break;
-		case 5:	absolute_am();				*data_in_addr = false;	break;
-		case 6:	pc_relative_am();			*data_in_addr = false;	break;
+		case 0:	register_am( r0 );			return true;
+		case 1:	register_am( r1 );			return true;
+		case 2:	displacement_am( r0 );		return false;
+		case 3:	displacement_am( r1 );		return false;
+		case 4:	immediate_am();				return true;
+		case 5:	absolute_am();				return false;
+		case 6:	pc_relative_am();			return false;
 		default:
 			cout << endl << 
 				"MACHINE HALTED due to unknown address mode" << 
 				am << endl;
 			done = true;
+			return false;
 	}
 }
 
@@ -420,7 +420,7 @@ void execute() {
 	// Since some instructions need a memory address in addr, an
 	// invalid address mode could be used if addr contains data.
 	// In that case, the machine should halt due to invalid address mode.
-	bool *data_in_addr;
+	bool data_in_addr;
 
 	// In each case, note that the last set of operations aren't actually performed 
 	// until we leave the switch statement.
@@ -433,7 +433,7 @@ void execute() {
 	
 	// Get the content of addr, if address mode matters for the instruction.
 	if( opc > -1 && opc < 11 )
-		decode_am( am, data_in_addr );
+		data_in_addr = decode_am( am );
 		
 	// Get the register represented by ra as RA.
 	Counter &ra_reg = (( ra == 0 ) ? r0 : r1 );

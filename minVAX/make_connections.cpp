@@ -23,6 +23,7 @@ void make_connections() {
 	ir.connectsTo( dbus.OUT() );
 	ir.connectsTo( m.READ() );
 	
+	aux.connectsTo( alu.OUT() );
 	aux.connectsTo( abus.IN() );
 	aux.connectsTo( abus.OUT() );
 	aux.connectsTo( dbus.IN() );
@@ -36,6 +37,8 @@ void make_connections() {
 	
 	addr.connectsTo( alu.OP2() );
 	addr.connectsTo( m.READ() );
+	addr.connectsTo( abus.IN() );
+	addr.connectsTo( abus.OUT() );
 	addr.connectsTo( dbus.IN() );
 	addr.connectsTo( dbus.OUT() );
 	
