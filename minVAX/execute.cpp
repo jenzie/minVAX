@@ -279,8 +279,8 @@ void dump_ra( Counter &ra, long ra_name ) {
 // Code 15
 //
 
-void halt() {
-	printf("%5s %03x\n", "HALT", ir(DATA_BITS - 4, 0));
+void halt(long ra, long am) {
+	printf("%3s %01x %01x", "HLT", ra, am);
 	cout << endl << "MACHINE HALTED due to halt instruction" << endl;
 	done = true;
 }
@@ -475,7 +475,7 @@ void execute() {
 						break;
 		case 14:	dump_ra( ra_reg, ra );					mnemonic = "DMP";
 						break;
-		case 15:	halt();									mnemonic = "HLT";	
+		case 15:	halt( ra, am );							mnemonic = "HLT";	
 						break;
 
 		default:
@@ -483,6 +483,9 @@ void execute() {
 			done = true;
 	}
 
+	if( opc != 15 )
+		printf("%3s %01x %01x", mnemonic, ra, am);
+	
 	//if (opc != 4 && opc != 7)
 		//printf("%5s %03x   AC=%04x", mnemonic, ir(DATA_BITS - 4, 0), ac.value());
 
