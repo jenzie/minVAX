@@ -296,9 +296,11 @@ void halt(long ra, long am) {
 // Effective Address: data in Rn
 //
 
-void register_am( Counter &reg ) {
+long register_am( Counter &reg ) {
 	dbus.IN().pullFrom( reg );
 	addr.latchFrom( dbus.OUT() );
+	
+	return 0;
 }
 
 //
@@ -309,10 +311,15 @@ void register_am( Counter &reg ) {
 // Effective Address: EA = reg + imm
 //
 
-void displacement_am( Counter &reg ) {
+long displacement_am( Counter &reg ) {
+	long imm;
+
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	pc.incr();
+	
+	// Save the immediate value for trace output.
+	imm = addr.value();
 	
 	// Compute EA = reg + imm; addr = reg + addr.
 	alu.OP1().pullFrom( reg );
@@ -326,6 +333,8 @@ void displacement_am( Counter &reg ) {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
+	
+	return imm;
 }
 
 //
@@ -337,10 +346,18 @@ void displacement_am( Counter &reg ) {
 // Effective Address: data in imm
 //
 
-void immediate_am() {
+long immediate_am() {
+	long imm;
+	
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
+	
+	// Save the immediate value for trace output.
+	imm = addr.value();
+	
 	pc.incr();
+	
+	return imm;
 }
 
 //
@@ -351,10 +368,12 @@ void immediate_am() {
 // Effective Address: EA = imm
 //
 
-void absolute_am() {
+long absolute_am() {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	pc.incr();
+	
+	return 0;
 }
 
 //
@@ -368,8 +387,14 @@ void absolute_am() {
 //
 
 void pc_relative_am() {
+	long imm;
+	
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
+	
+	// Save the immediate value for trace output.
+	imm = addr.value();
+	
 	pc.incr();
 	
 	// Compute EA = PC + imm; addr = pc + addr
@@ -384,6 +409,8 @@ void pc_relative_am() {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
+	
+	return imm;
 }
 
 bool decode_am( long am ) {
@@ -412,6 +439,7 @@ void execute() {
 	long opc;
 	long am;
 	long ra;
+	long imm;
 	
 	// Represents the operation performed by the instruction's opcode.
 	const char* mnemonic;
