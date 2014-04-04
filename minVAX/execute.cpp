@@ -33,6 +33,7 @@ void add_to_ra( Counter &ra ) {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
+	Clock::tick();
 }
 
 //
@@ -57,6 +58,7 @@ void and_to_ra( Counter &ra ) {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
+	Clock::tick();
 }
 
 //
@@ -82,6 +84,7 @@ void shift_right_arithmetic( Counter &ra ) {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
+	Clock::tick();
 }
 
 //
@@ -107,6 +110,7 @@ void shift_left_logical( Counter &ra ) {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
+	Clock::tick();
 }
 
 //
@@ -129,6 +133,7 @@ void load_to_ra( Counter &ra ) {
 	// RA <- AUX
 	dbus.IN().pullFrom( aux );
 	ra.latchFrom( dbus.OUT() );
+	Clock::tick();
 }
 
 //
@@ -172,6 +177,7 @@ bool jump() {
 	// PC <- ADDR
 	abus.IN().pullFrom( addr );
 	pc.latchFrom( abus.OUT() );
+	Clock::tick();
 	
 	// True for branch was taken.
 	return true;
@@ -234,6 +240,7 @@ bool branch_if_ra_less_than_zero( Counter &ra ) {
 
 void clear_ra( Counter &ra ) {
 	ra.clear();
+	Clock::tick();
 }
 
 //
@@ -257,6 +264,7 @@ void complement_ra( Counter &ra ) {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
+	Clock::tick();
 }
 
 //
@@ -272,6 +280,7 @@ void complement_ra( Counter &ra ) {
 void increment_ra( Counter &ra ) {
 	// RA <- RA + 1
 	ra.incr();
+	Clock::tick();
 }
 
 //
