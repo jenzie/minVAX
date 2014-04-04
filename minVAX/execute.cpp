@@ -522,16 +522,20 @@ void execute() {
 		if( immediate == -1 )
 			printf("    ");
 		else
-			printf("%3lx ", immediate);
+			printf(" %02lx ", immediate);
+			
+		immediate = -1;
 			
 		if( opc != 0 && opc != 10 ) {
-			if( opc < 5 && opc > 10 )
+			if( opc < 6 || opc > 10 )
 				dump_ra( ra_reg, ra );
 			else if( opc > 6 && opc < 10 ) {
 				if( branchTaken )
 					printf("BRANCH TAKEN");
 				else
 					printf("BRANCH NOT TAKEN");
+				
+				branchTaken = false;
 			}
 			else if( opc == 6 )
 				printf("MEM[%01lx]=%01lx", addr.value(), aux.value());
