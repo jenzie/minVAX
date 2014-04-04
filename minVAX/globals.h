@@ -28,5 +28,6 @@ extern Memory m;            // primary memory
 extern BusALU alu;          // arithmetic logic unit
 
 extern bool done;	        // is the simulation over?
+extern long immediate;		// immediate value for address modes that use it
 
 #endif

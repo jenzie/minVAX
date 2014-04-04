@@ -45,9 +45,10 @@ void run_simulation( char *objfile ) {
 			break;
 		}
 
-		// print the instruction's address (pc) and data (memory data register) values in hexadecimal
+		// print the instruction's address (pc) and data (memory data register) 
+		// values in hexadecimal
 		
-		printf("%02x:  %02x = ", pc.value(), ir.value());
+		printf("%02lx:  %02lx = ", pc.value(), ir.value());
 
 		// bump PC for next instruction
 		

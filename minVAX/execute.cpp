@@ -168,10 +168,13 @@ void store_to_mem( Counter &ra ) {
 // Code 7
 //
 
-void jump() {
+bool jump() {
 	// PC <- ADDR
 	abus.IN().pullFrom( addr );
 	pc.latchFrom( abus.OUT() );
+	
+	// True for branch was taken.
+	return true;
 }
 
 //
@@ -184,10 +187,17 @@ void jump() {
 // Code 8
 //
 
-void branch_if_ra_equals_zero( Counter &ra ) {
+bool branch_if_ra_equals_zero( Counter &ra ) {
 	// if RA == 0 then PC = EA
-	if( ra.value() == 0 )
+	if( ra.value() == 0 ) {
 		jump();
+		
+		// True for branch was taken.
+		return true;
+	}
+	
+	// False for branch was not taken.
+	return false;
 }
 
 //
@@ -200,10 +210,17 @@ void branch_if_ra_equals_zero( Counter &ra ) {
 // Code 9
 //
 
-void branch_if_ra_less_than_zero( Counter &ra ) {
+bool branch_if_ra_less_than_zero( Counter &ra ) {
 	// if RA < 0 then PC = EA
-	if( ra.value() < 0 )
+	if( ra.value() < 0 ) {
 		jump();
+		
+		// True for branch was taken.
+		return true;
+	}
+	
+	// False for branch was not taken.
+	return false;
 }
 
 //
@@ -267,7 +284,7 @@ void increment_ra( Counter &ra ) {
 //
 
 void dump_ra( Counter &ra, long ra_name ) {
-	printf( "R%lu=%02x", ra_name, ra.value() );
+	printf( "R%lu=%02lx", ra_name, ra.value() );
 }
 
 //
@@ -280,7 +297,7 @@ void dump_ra( Counter &ra, long ra_name ) {
 //
 
 void halt(long ra, long am) {
-	printf("%3s %01x %01x", "HLT", ra, am);
+	printf("%3s %01lx %01lx", "HLT", ra, am);
 	cout << endl << "MACHINE HALTED due to halt instruction" << endl;
 	done = true;
 }
@@ -296,11 +313,9 @@ void halt(long ra, long am) {
 // Effective Address: data in Rn
 //
 
-long register_am( Counter &reg ) {
+void register_am( Counter &reg ) {
 	dbus.IN().pullFrom( reg );
 	addr.latchFrom( dbus.OUT() );
-	
-	return 0;
 }
 
 //
@@ -311,15 +326,13 @@ long register_am( Counter &reg ) {
 // Effective Address: EA = reg + imm
 //
 
-long displacement_am( Counter &reg ) {
-	long imm;
-
+void displacement_am( Counter &reg ) {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	pc.incr();
 	
 	// Save the immediate value for trace output.
-	imm = addr.value();
+	immediate = addr.value();
 	
 	// Compute EA = reg + imm; addr = reg + addr.
 	alu.OP1().pullFrom( reg );
@@ -333,8 +346,6 @@ long displacement_am( Counter &reg ) {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
-	
-	return imm;
 }
 
 //
@@ -346,18 +357,14 @@ long displacement_am( Counter &reg ) {
 // Effective Address: data in imm
 //
 
-long immediate_am() {
-	long imm;
-	
+void immediate_am() {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	
 	// Save the immediate value for trace output.
-	imm = addr.value();
+	immediate = addr.value();
 	
 	pc.incr();
-	
-	return imm;
 }
 
 //
@@ -368,12 +375,10 @@ long immediate_am() {
 // Effective Address: EA = imm
 //
 
-long absolute_am() {
+void absolute_am() {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	pc.incr();
-	
-	return 0;
 }
 
 //
@@ -387,13 +392,11 @@ long absolute_am() {
 //
 
 void pc_relative_am() {
-	long imm;
-	
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	
 	// Save the immediate value for trace output.
-	imm = addr.value();
+	immediate = addr.value();
 	
 	pc.incr();
 	
@@ -409,8 +412,6 @@ void pc_relative_am() {
 	// Get the value from AUX into ADDR.
 	dbus.IN().pullFrom( aux );
 	addr.latchFrom( dbus.OUT() );
-	
-	return imm;
 }
 
 bool decode_am( long am ) {
@@ -440,6 +441,7 @@ void execute() {
 	long am;
 	long ra;
 	long imm;
+	bool branchTaken;
 	
 	// Represents the operation performed by the instruction's opcode.
 	const char* mnemonic;
@@ -450,8 +452,8 @@ void execute() {
 	// In that case, the machine should halt due to invalid address mode.
 	bool data_in_addr;
 
-	// In each case, note that the last set of operations aren't actually performed 
-	// until we leave the switch statement.
+	// In each case, note that the last set of operations aren't actually 
+	// performed until we leave the switch statement.
 	//
 	// instr format: opcode = bits 7:4, address mode = bits 3:1, ra = bit 0
 
@@ -485,11 +487,13 @@ void execute() {
 						break;
 		case 6: 	store_to_mem( ra_reg );					mnemonic = "STR";
 						break;
-		case 7: 	jump();									mnemonic = "JMP";
+		case 7: 	branchTaken = jump();					mnemonic = "JMP";
 						break;
-		case 8: 	branch_if_ra_equals_zero( ra_reg );		mnemonic = "BEZ";
+		case 8: 	branchTaken = 
+					branch_if_ra_equals_zero( ra_reg );		mnemonic = "BEZ";
 						break;
-		case 9: 	branch_if_ra_less_than_zero( ra_reg );	mnemonic = "BLT";
+		case 9: 	branchTaken = 
+					branch_if_ra_less_than_zero( ra_reg );	mnemonic = "BLT";
 						break;
 		case 10: 											mnemonic = "NOP";
 						break;
@@ -507,16 +511,33 @@ void execute() {
 						break;
 
 		default:
-			cout << endl << "MACHINE HALTED due to unknown op code" << opc << endl;
+			cout << endl << "MACHINE HALTED due to unknown op code" 
+				<< opc << endl;
 			done = true;
 	}
 
-	if( opc != 15 )
-		printf("%3s %01x %01x", mnemonic, ra, am);
+	if( opc != 15 && opc != 14 ) {
+		printf("%3s %01lx %01lx", mnemonic, ra, am);
+		
+		if( immediate == -1 )
+			printf("    ");
+		else
+			printf("%3lx ", immediate);
+			
+		if( opc != 0 && opc != 10 ) {
+			if( opc < 5 && opc > 10 )
+				dump_ra( ra_reg, ra );
+			else if( opc > 6 && opc < 10 ) {
+				if( branchTaken )
+					printf("BRANCH TAKEN");
+				else
+					printf("BRANCH NOT TAKEN");
+			}
+			else if( opc == 6 )
+				printf("MEM[%01lx]=%01lx", addr.value(), aux.value());
+		}
+	}
 	
-	//if (opc != 4 && opc != 7)
-		//printf("%5s %03x   AC=%04x", mnemonic, ir(DATA_BITS - 4, 0), ac.value());
-
 	Clock::tick();
 
 }

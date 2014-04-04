@@ -47,3 +47,4 @@ BusALU alu( "Adder", DATA_BITS );           // arithmetic logic unit
 //
 
 bool done ( false );		// is the simulation over?
+long immediate ( -1 );		// immediate value for address modes that use it
