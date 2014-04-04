@@ -212,7 +212,7 @@ bool branch_if_ra_equals_zero( Counter &ra ) {
 
 bool branch_if_ra_less_than_zero( Counter &ra ) {
 	// if RA < 0 then PC = EA
-	if( ra.value() < 0 ) {
+	if( ra( ADDR_BITS - 1 ) == 1 ) {
 		jump();
 		
 		// True for branch was taken.
