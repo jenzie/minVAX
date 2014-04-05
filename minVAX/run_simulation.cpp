@@ -39,16 +39,17 @@ void run_simulation( char *objfile ) {
 
 		// check for PC overflow
 		
-		if ( pc.value() >= 0x101 ) {
+		if ( pc.value() >= 0x100 ) {
 			cout << endl << "MACHINE HALTED due to PC overflow" << endl << endl;
 			done = true;
 			break;
 		}
 
-		// print the instruction's address (pc) and data (memory data register) 
+		// save the instruction's address (pc) and data (memory data register) 
 		// values in hexadecimal
 		
-		printf("%02lx:  %02lx = ", pc.value(), ir.value());
+		savedPC = pc.value();
+		savedIR = ir.value();
 
 		// bump PC for next instruction
 		

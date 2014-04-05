@@ -48,3 +48,5 @@ BusALU alu( "Adder", DATA_BITS );           // arithmetic logic unit
 
 bool done ( false );		// is the simulation over?
 long immediate ( -1 );		// immediate value for address modes that use it
+long savedPC;				// used for printing trace output
+long savedIR;				// used for printing trace output

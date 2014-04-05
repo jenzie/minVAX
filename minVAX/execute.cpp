@@ -294,6 +294,7 @@ void increment_ra( Counter &ra ) {
 //
 
 void dump_ra( Counter &ra, long ra_name, long am ) {
+	printf("%02lx:  %02lx = ", savedPC, savedIR);
 	printf( "DMP %01lx %01lx    R%lu=%02lx", ra_name, am, ra_name, ra.value() );
 }
 
@@ -321,6 +322,7 @@ void dump_ra_short( Counter &ra, long ra_name ) {
 //
 
 void halt(long ra, long am) {
+	printf("%02lx:  %02lx = ", savedPC, savedIR);
 	printf("%3s %01lx %01lx   ", "HLT", ra, am);
 	cout << endl << endl << "MACHINE HALTED due to halt instruction" << endl;
 	done = true;
@@ -482,8 +484,7 @@ bool decode_am( long am, bool dataNeeded ) {
 		case 6:	pc_relative_am( dataNeeded );			return false;
 		default:
 			cout << endl << 
-				"MACHINE HALTED due to unknown address mode" << 
-				am << endl;
+				"MACHINE HALTED due to unknown address mode" << endl;
 			done = true;
 			return false;
 	}
@@ -521,6 +522,12 @@ void execute() {
 	opc = ir( DATA_BITS-1, DATA_BITS-4 );
 	am = ir( DATA_BITS-5, DATA_BITS-7 );
 	ra = ir( DATA_BITS-8 );
+	
+	// Check for invalid address modes.
+	if( opc > 4 && opc < 11 && ( am == 0 || am == 1 || am == 4 ) ) {
+		cout << endl << "MACHINE HALTED due to invalid address mode" << endl;
+			done = true;
+	}
 	
 	// Get the content of addr, if address mode matters for the instruction.
 	// Ignore NOP, opc 0 and opc 10.
@@ -582,8 +589,9 @@ void execute() {
 				<< opc << endl;
 			done = true;
 	}
-
-	if( opc != 15 && opc != 14 ) {
+	
+	if( opc != 15 && opc != 14 && !done ) {
+		printf("%02lx:  %02lx = ", savedPC, savedIR);
 		printf("%3s %01lx %01lx", mnemonic, ra, am);
 		
 		if( opc != 0 && opc != 10 ) {

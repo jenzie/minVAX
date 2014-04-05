@@ -29,5 +29,7 @@ extern BusALU alu;          // arithmetic logic unit
 
 extern bool done;	        // is the simulation over?
 extern long immediate;		// immediate value for address modes that use it
+extern long savedPC;		// used for printing trace output
+extern long savedIR;		// used for printing trace output
 
 #endif
