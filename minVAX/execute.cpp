@@ -30,9 +30,9 @@ void add_to_ra( Counter &ra ) {
 	aux.latchFrom( alu.OUT() );
 	Clock::tick();
 	
-	// Get the value from AUX into ADDR.
+	// Get the value from AUX into RA.
 	dbus.IN().pullFrom( aux );
-	addr.latchFrom( dbus.OUT() );
+	ra.latchFrom( dbus.OUT() );
 	Clock::tick();
 }
 
@@ -55,9 +55,9 @@ void and_to_ra( Counter &ra ) {
 	aux.latchFrom( alu.OUT() );
 	Clock::tick();
 	
-	// Get the value from AUX into ADDR.
+	// Get the value from AUX into RA.
 	dbus.IN().pullFrom( aux );
-	addr.latchFrom( dbus.OUT() );
+	ra.latchFrom( dbus.OUT() );
 	Clock::tick();
 }
 
@@ -81,9 +81,9 @@ void shift_right_arithmetic( Counter &ra ) {
 	aux.latchFrom( alu.OUT() );
 	Clock::tick();
 	
-	// Get the value from AUX into ADDR.
+	// Get the value from AUX into RA.
 	dbus.IN().pullFrom( aux );
-	addr.latchFrom( dbus.OUT() );
+	ra.latchFrom( dbus.OUT() );
 	Clock::tick();
 }
 
@@ -101,15 +101,16 @@ void shift_right_arithmetic( Counter &ra ) {
 void shift_left_logical( Counter &ra ) {
 	alu.OP1().pullFrom( ra );
 	alu.OP2().pullFrom( addr );
+	
 	alu.perform( BusALU::op_lshift );
 	
 	// Get the result from ALU into AUX.
 	aux.latchFrom( alu.OUT() );
 	Clock::tick();
 	
-	// Get the value from AUX into ADDR.
+	// Get the value from AUX into RA.
 	dbus.IN().pullFrom( aux );
-	addr.latchFrom( dbus.OUT() );
+	ra.latchFrom( dbus.OUT() );
 	Clock::tick();
 }
 
@@ -261,9 +262,9 @@ void complement_ra( Counter &ra ) {
 	aux.latchFrom( alu.OUT() );
 	Clock::tick();
 	
-	// Get the value from AUX into ADDR.
+	// Get the value from AUX into RA.
 	dbus.IN().pullFrom( aux );
-	addr.latchFrom( dbus.OUT() );
+	ra.latchFrom( dbus.OUT() );
 	Clock::tick();
 }
 
@@ -292,9 +293,23 @@ void increment_ra( Counter &ra ) {
 // Code 14
 //
 
-void dump_ra( Counter &ra, long ra_name ) {
+void dump_ra( Counter &ra, long ra_name, long am ) {
+	printf( "DMP %01lx %01lx    R%lu=%02lx", ra_name, am, ra_name, ra.value() );
+}
+
+//
+// dump_ra_short() - dump (print) the value of register RA.
+//
+// RTL (Register Transfer Language)
+// null
+//
+// Code 14
+//
+
+void dump_ra_short( Counter &ra, long ra_name ) {
 	printf( "R%lu=%02lx", ra_name, ra.value() );
 }
+
 
 //
 // halt() - halt the computer.
@@ -306,8 +321,8 @@ void dump_ra( Counter &ra, long ra_name ) {
 //
 
 void halt(long ra, long am) {
-	printf("%3s %01lx %01lx", "HLT", ra, am);
-	cout << endl << "MACHINE HALTED due to halt instruction" << endl;
+	printf("%3s %01lx %01lx   ", "HLT", ra, am);
+	cout << endl << endl << "MACHINE HALTED due to halt instruction" << endl;
 	done = true;
 }
 
@@ -325,6 +340,8 @@ void halt(long ra, long am) {
 void register_am( Counter &reg ) {
 	dbus.IN().pullFrom( reg );
 	addr.latchFrom( dbus.OUT() );
+	
+	Clock::tick();
 }
 
 //
@@ -335,7 +352,7 @@ void register_am( Counter &reg ) {
 // Effective Address: EA = reg + imm
 //
 
-void displacement_am( Counter &reg ) {
+void displacement_am( Counter &reg, bool dataNeeded ) {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	pc.incr();
@@ -352,9 +369,18 @@ void displacement_am( Counter &reg ) {
 	aux.latchFrom( alu.OUT() );
 	Clock::tick();
 	
-	// Get the value from AUX into ADDR.
-	dbus.IN().pullFrom( aux );
-	addr.latchFrom( dbus.OUT() );
+	// Instead of moving the address into the address register, use the address 
+	// to get the data.
+	if( dataNeeded ) {
+		fetch_into( aux, abus, addr );
+	}
+	// Otherwise, store the address.
+	else {
+		// Get the value from AUX into ADDR.
+		dbus.IN().pullFrom( aux );
+		addr.latchFrom( dbus.OUT() );
+		Clock::tick();
+	}
 }
 
 //
@@ -374,6 +400,7 @@ void immediate_am() {
 	immediate = addr.value();
 	
 	pc.incr();
+	Clock::tick();
 }
 
 //
@@ -384,10 +411,21 @@ void immediate_am() {
 // Effective Address: EA = imm
 //
 
-void absolute_am() {
+void absolute_am( bool dataNeeded ) {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
+	
+	// Save the immediate value for trace output.
+	immediate = addr.value();
+	
 	pc.incr();
+	Clock::tick();
+	
+	// Instead of moving the address into the address register, use the address 
+	// to get the data.
+	if( dataNeeded ) {
+		fetch_into( addr, abus, addr );
+	}
 }
 
 //
@@ -400,7 +438,7 @@ void absolute_am() {
 // Effective Address: EA = PC + imm
 //
 
-void pc_relative_am() {
+void pc_relative_am( bool dataNeeded ) {
 	// PC is pointing to the immediate value; get the imm value into addr.
 	fetch_into( pc, abus, addr );
 	
@@ -408,6 +446,7 @@ void pc_relative_am() {
 	immediate = addr.value();
 	
 	pc.incr();
+	Clock::tick();
 	
 	// Compute EA = PC + imm; addr = pc + addr
 	alu.OP1().pullFrom( pc );
@@ -418,20 +457,29 @@ void pc_relative_am() {
 	aux.latchFrom( alu.OUT() );
 	Clock::tick();
 	
-	// Get the value from AUX into ADDR.
-	dbus.IN().pullFrom( aux );
-	addr.latchFrom( dbus.OUT() );
+	// Instead of moving the address into the address register, use the address 
+	// to get the data.
+	if( dataNeeded ) {
+		fetch_into( pc, abus, addr );
+	}
+	// Otherwise, store the address.
+	else {
+		// Get the value from AUX into ADDR.
+		dbus.IN().pullFrom( aux );
+		addr.latchFrom( dbus.OUT() );
+		Clock::tick();
+	}
 }
 
-bool decode_am( long am ) {
+bool decode_am( long am, bool dataNeeded ) {
 	switch( am ) {
-		case 0:	register_am( r0 );			return true;
-		case 1:	register_am( r1 );			return true;
-		case 2:	displacement_am( r0 );		return false;
-		case 3:	displacement_am( r1 );		return false;
-		case 4:	immediate_am();				return true;
-		case 5:	absolute_am();				return false;
-		case 6:	pc_relative_am();			return false;
+		case 0:	register_am( r0 );						return true;
+		case 1:	register_am( r1 );						return true;
+		case 2:	displacement_am( r0, dataNeeded );		return false;
+		case 3:	displacement_am( r1, dataNeeded );		return false;
+		case 4:	immediate_am();							return true;
+		case 5:	absolute_am( dataNeeded );				return false;
+		case 6:	pc_relative_am( dataNeeded );			return false;
 		default:
 			cout << endl << 
 				"MACHINE HALTED due to unknown address mode" << 
@@ -452,6 +500,10 @@ void execute() {
 	long imm;
 	bool branchTaken;
 	
+	// If true, instead of storing the EA for use later as an address, 
+	// the EA is pointing to the data itself.
+	bool dataNeeded;
+	
 	// Represents the operation performed by the instruction's opcode.
 	const char* mnemonic;
 	
@@ -471,8 +523,14 @@ void execute() {
 	ra = ir( DATA_BITS-8 );
 	
 	// Get the content of addr, if address mode matters for the instruction.
-	if( opc > -1 && opc < 11 )
-		data_in_addr = decode_am( am );
+	// Ignore NOP, opc 0 and opc 10.
+	if( opc > 0 && opc < 10 ) {
+		if( opc > -1 && opc < 5 )
+			dataNeeded = true;
+		else
+			dataNeeded = false;
+		data_in_addr = decode_am( am, dataNeeded );
+	}
 		
 	// Get the register represented by ra as RA.
 	Counter &ra_reg = (( ra == 0 ) ? r0 : r1 );
@@ -514,7 +572,7 @@ void execute() {
 						break;
 		case 13:	increment_ra( ra_reg );					mnemonic = "INC";
 						break;
-		case 14:	dump_ra( ra_reg, ra );					mnemonic = "DMP";
+		case 14:	dump_ra( ra_reg, ra, am );				mnemonic = "DMP";
 						break;
 		case 15:	halt( ra, am );							mnemonic = "HLT";	
 						break;
@@ -528,16 +586,16 @@ void execute() {
 	if( opc != 15 && opc != 14 ) {
 		printf("%3s %01lx %01lx", mnemonic, ra, am);
 		
-		if( immediate == -1 )
-			printf("    ");
-		else
-			printf(" %02lx ", immediate);
-			
-		immediate = -1;
-			
 		if( opc != 0 && opc != 10 ) {
+			if( immediate == -1 )
+				printf("    ");
+			else
+				printf(" %02lx ", immediate);
+		
+			immediate = -1;
+			
 			if( opc < 6 || opc > 10 )
-				dump_ra( ra_reg, ra );
+				dump_ra_short( ra_reg, ra );
 			else if( opc > 6 && opc < 10 ) {
 				if( branchTaken )
 					printf("BRANCH TAKEN");
@@ -547,8 +605,10 @@ void execute() {
 				branchTaken = false;
 			}
 			else if( opc == 6 )
-				printf("MEM[%01lx]=%01lx", addr.value(), aux.value());
+				printf("MEM[%01lx]=%02lx", addr.value(), aux.value());
 		}
+		else
+			printf("   ");
 	}
 	
 	Clock::tick();

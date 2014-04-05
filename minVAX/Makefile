@@ -54,7 +54,7 @@ CCLIBFLAGS = $(LIBFLAGS)
 ########## End of flags from header.mak
 
 
-CPP_FILES =	execute.cpp fetch_into.cpp globals.cpp make_connections.cpp run_simulation.cpp simpISA.cpp
+CPP_FILES =	execute.cpp fetch_into.cpp globals.cpp make_connections.cpp run_simulation.cpp minVAX.cpp
 C_FILES =	
 PS_FILES =	
 S_FILES =	
@@ -67,10 +67,10 @@ OBJFILES =	execute.o fetch_into.o globals.o make_connections.o run_simulation.o
 # Main targets
 #
 
-all:	simpISA 
+all:	minVAX 
 
-simpISA:	simpISA.o $(OBJFILES)
-	$(CXX) $(CXXFLAGS) -o simpISA simpISA.o $(OBJFILES) $(CCLIBFLAGS)
+minVAX:	minVAX.o $(OBJFILES)
+	$(CXX) $(CXXFLAGS) -o minVAX minVAX.o $(OBJFILES) $(CCLIBFLAGS)
 
 #
 # Dependencies
@@ -81,7 +81,7 @@ fetch_into.o:	globals.h includes.h prototypes.h
 globals.o:	globals.h includes.h prototypes.h
 make_connections.o:	globals.h includes.h prototypes.h
 run_simulation.o:	globals.h includes.h prototypes.h
-simpISA.o:	globals.h includes.h prototypes.h
+minVAX.o:	globals.h includes.h prototypes.h
 
 #
 # Housekeeping
@@ -93,7 +93,7 @@ archive.tgz:	$(SOURCEFILES) Makefile
 	tar cf - $(SOURCEFILES) Makefile | gzip > archive.tgz
 
 clean:
-	-/bin/rm $(OBJFILES) simpISA.o core 2> /dev/null
+	-/bin/rm $(OBJFILES) minVAX.o core 2> /dev/null
 
 realclean:        clean
-	-/bin/rm -rf simpISA 
+	-/bin/rm -rf minVAX 

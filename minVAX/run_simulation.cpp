@@ -39,7 +39,7 @@ void run_simulation( char *objfile ) {
 
 		// check for PC overflow
 		
-		if (pc.value() == 0xfff) {
+		if ( pc.value() >= 0x101 ) {
 			cout << endl << "MACHINE HALTED due to PC overflow" << endl << endl;
 			done = true;
 			break;
