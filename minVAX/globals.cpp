@@ -1,5 +1,6 @@
 // globals.C
 //
+// Modified program: 	Jenny Zhen, March 2014
 // Original program:	Jim Heliotis, March 2000
 // Updates:
 //
